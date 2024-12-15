@@ -1,0 +1,48 @@
+{% load static %}
+<!DOCTYPE html>
+
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title>ZYN - Login</title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    </head>
+    <body>
+        
+        <h2>Sign In</h2>
+        <form id="signinForm" action="" method="POST" >
+            {% csrf_token %}
+           
+            <div >
+              <label for="contactNo" >Contact no</label>
+              <input type="number" id="contactNo" placeholder="Contact No">
+            </div>
+            <div>
+              <label for="password" >Password</label>
+              <input type="password"  id="password" placeholder="Password">
+            </div>
+            
+            
+            <a>
+              <button type="button" id="signinbtn">
+                Sign In
+               
+              </button>
+            </a>
+
+            <div>
+              <label>
+
+                Don't have an account <a href="signup"> Sign up</a>
+              </label>
+            </div>
+
+          </form>
+
+
+        <script src="{% static 'js/index.js' %}" ></script>
+    </body>
+</html>
