@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Purchase From ZYN</title>
+</head>
+<body>
+    <h1>Purchase From ZYN</h1>
+
+    <div>
+        <h2>Your Points: {{ point_accumulated }}</h2>
+    </div>
+
+    {% if eligible_discount_codes %}
+        <div>
+            <h3>Eligible Discount Codes:</h3>
+            <ul>
+                {% for code in eligible_discount_codes %}
+                    <li>{{ code.code }} - {{ code.points_required }} points</li>
+                {% endfor %}
+            </ul>
+        </div>
+    {% else %}
+        <p>No discount codes available for your current points.</p>
+    {% endif %}
+
+    {% if error %}
+        <p style="color: red;">{{ error }}</p>
+    {% endif %}
+</body>
+</html>

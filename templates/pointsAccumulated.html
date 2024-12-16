@@ -1,0 +1,38 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title></title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="{% static 'css/style.css' %}" >
+    </head>
+    <body>
+       
+        <form action="" method="POST" id="pointsAccumulatedForm">
+            {% csrf_token %}
+            <div id="pointsStatus">{{ points_accumulated }}/800</div> 
+            <input type="range" id="pointsBar" min="0" max="800" value="{{points_accumulated}}" readonly />
+            <input type="text" id="rewardCode" placeholder="Enter Reward Code" />
+            <button type="button" id="pointBtn">Add points</button>
+        </form>
+        
+        
+        <h1>Redeem</h1>
+        
+        <div class="btn-wrapper">
+            <div><a href="purchaseFromZYN" ><button type="button">Purchase from ZYN</button></a></div>
+            <div><button type="button">Claim Merchandise</button></div>
+        </div>
+        
+        <div>
+            <p id="surveyPoints" >{{points_accumulated}}/160</p>
+            <button type="button" id="completeSurvey" disabled >Complete this survey for your chance to win a brand new HYUNDAI SANTA FE!</button>
+        </div>
+        
+        
+        <script src="{% static 'js/index.js' %}" ></script>
+    </body>
+</html>

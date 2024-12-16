@@ -16,11 +16,14 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-from myapp.views import ageRestrict,signup,signin
+from myapp.views import ageRestrict,signup,signin,pointsAccumulated,purchaseFromZYN,getRewardCode
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('rewardCodes', getRewardCode, name="rewardCodes"),
     path('',ageRestrict,name="ageRestrict"),
     path('signup',signup,name="signup"),
-    path("signin",signin,name="signin")
+    path("signin",signin,name="signin"),
+    path("pointsAccumulated",pointsAccumulated , name="pointsAccumulated"),
+    path("purchaseFromZYN",purchaseFromZYN,name="purchaseFromZYN")
 ]
