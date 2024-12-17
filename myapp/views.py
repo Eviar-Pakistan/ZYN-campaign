@@ -3,9 +3,15 @@ from django.contrib.auth import authenticate, login
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required
-from myapp.models import UserProfile,RewardCode,DiscountCode  
+from myapp.models import UserProfile,RewardCode,DiscountCode,Product,SurveyOption,SurveyQuestion  
 import json
 from django.shortcuts import render
+from django.shortcuts import get_object_or_404, redirect
+from django.core.paginator import Paginator
+from .models import SurveyQuestion
+from django.core.mail import send_mail
+from ZYN_Campaign.settings import EMAIL_HOST_USER
+
 
 def ageRestrict(request):
 
@@ -67,10 +73,11 @@ def signup(request):
 
     return render(request, "signup.html")
 
+from django.shortcuts import redirect
+
 def signin(request):
     if request.method == "POST":
         try:
-            # Parse the incoming JSON request body
             data = json.loads(request.body)
             contact_no = data.get('contactNo')
             password = data.get('password')
@@ -80,12 +87,16 @@ def signin(request):
 
             try:
                 user_profile = UserProfile.objects.get(contact_no=contact_no)
-                
                 user = authenticate(request, username=user_profile.user.username, password=password)
 
                 if user is not None:
                     login(request, user)
-                    return JsonResponse({'success': True, 'message': 'Login successful.'}, status=200)
+                    if not user.email:
+                        return JsonResponse({'success': True, 'redirect': '/emailTaking'}, status=200)
+                    elif not user_profile.email_verified:
+                        return JsonResponse({'success': True, 'redirect': '/emailVerification'}, status=200)
+                    else:
+                        return JsonResponse({'success': True, 'redirect': 'pointsAccumulated'}, status=200)
                 else:
                     return JsonResponse({'success': False, 'message': 'Invalid password.'}, status=400)
             except UserProfile.DoesNotExist:
@@ -93,10 +104,46 @@ def signin(request):
 
         except json.JSONDecodeError:
             return JsonResponse({'success': False, 'message': 'Invalid JSON format.'}, status=400)
-        
+
     return render(request, "signin.html")
 
+def email_taking(request):
+    if request.method == "POST":
+        data = json.loads(request.body)
+        email = data.get('email')
+        if email:
+            request.user.email = email
+            request.user.save()
+            return JsonResponse({'success': True, 'redirect': '/emailVerification'}, status=200)
+        else:
+             return JsonResponse({'success': True, 'redirect': '/pointsAccumulated'}, status=200)
+    return render(request, "emailTaking.html")
+
 @login_required
+def email_verification(request):
+    if request.method == "POST":
+        user = request.user
+        # Simulate sending an email verification (replace with real logic)
+        verification_link = request.build_absolute_uri(f"/verifyEmail?user={user.id}")
+        send_mail(
+            'Email Verification',
+            f'Click the link to verify your email: {verification_link}',
+            EMAIL_HOST_USER,
+            [user.email],
+            fail_silently=False,
+        )
+        return JsonResponse({'success': True, 'message': 'Verification email sent.'}, status=200)
+    return render(request, "emailVerification.html")
+
+@login_required
+def verify_email(request):
+    user = request.user
+    user.profile.email_verified = True
+    user.profile.save()
+    return JsonResponse({'success': True, 'message': 'Email successfully verified.'})
+
+
+@login_required(login_url= "signin")
 def getRewardCode(request):
     if request.method == "POST":
         try:
@@ -134,17 +181,26 @@ def getRewardCode(request):
     return JsonResponse({'success': False, 'message': 'Invalid request method.'}, status=400)
 
 
-@login_required
+@login_required(login_url="signin")
 def pointsAccumulated(request):
     user = request.user
     user_profile = UserProfile.objects.get(user=user)
-    point_accumulated = user_profile.point_accumulated
 
-    return render(request,"pointsAccumulated.html" ,{'points_accumulated':point_accumulated})
+    # Award points only if email is verified and points haven't been awarded yet
+    if user_profile.email_verified and not user_profile.points_awarded_for_email:
+        user_profile.point_accumulated += 40  # Increment points
+        user_profile.points_awarded_for_email = True  # Mark points as awarded
+        user_profile.save()  # Save the changes to the database
 
-from django.shortcuts import render
-from .models import UserProfile, DiscountCode
+    # Get the current points from the profile
+    points_accumulated = user_profile.point_accumulated
 
+    return render(request, "pointsAccumulated.html", {'points_accumulated': points_accumulated})
+
+
+
+
+@login_required(login_url = "signin")
 def purchaseFromZYN(request):
     user = request.user
     try:
@@ -163,3 +219,50 @@ def purchaseFromZYN(request):
         return render(request, "purchaseFromZYN.html", {
             "error": "User profile not found.",
         })
+
+
+def claimMerchandize(request):
+    user_profile = request.user.profile  
+    user_points = user_profile.point_accumulated 
+    products = Product.objects.all()
+
+    context = {
+        'products': products,
+        'user_points': user_points,
+    }
+
+    return render(request, 'claimMerchandize.html', context)
+
+def redeemProduct(request, product_id):
+    product = get_object_or_404(Product, id=product_id)
+    user_profile = request.user.profile
+
+    if user_profile.point_accumulated >= product.required_points:
+        # Deduct points from the user's profile
+        user_profile.point_accumulated -= product.required_points
+        user_profile.save()
+        return redirect('claimMerchandize')
+    return redirect('claimMerchandize')
+
+@login_required
+def survey_view(request):
+    questions = SurveyQuestion.objects.all().order_by('created_at') 
+
+    paginator = Paginator(questions, 1)
+    page_number = request.GET.get('page')  
+    page_obj = paginator.get_page(page_number)
+
+    if request.method == "POST":
+        # Handle the form submission
+        selected_option_id = request.POST.get('option')
+        if selected_option_id:
+            selected_option = SurveyOption.objects.get(id=selected_option_id)
+
+            print(f"User selected: {selected_option.option_text}")
+
+            if page_obj.has_next():
+                return redirect("survey")
+            else:
+                return redirect("survey") 
+
+    return render(request, 'surveyQuestions.html', {'page_obj': page_obj})

@@ -1,0 +1,25 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Provide Email</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+    <h2>Provide Your Email</h2>
+    <form id="emailTakingForm" method="POST">
+        {% csrf_token %}
+        <label for="email">Email:</label>
+        <input type="email" id="email" name="email" placeholder="Enter your email" >
+        <div class="btn-wrapper" > 
+            <div>
+                <button type="submit">Save Email</button>
+            </div>
+            <div>
+                <a href="pointsAccumulated" ><button>May be later</button></a>
+            </div>
+        </div>
+    </form>
+    <script src="{% static 'js/index.js' %}" ></script>
+</body>
+</html>

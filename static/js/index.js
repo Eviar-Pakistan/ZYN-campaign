@@ -119,8 +119,8 @@ signupbtn && signupbtn.addEventListener("click", (e) => {
                   if (data.success) {
                     alert("Signin successful!");
                     signinForm.reset(); 
-                    window.location.href = "pointsAccumulated"
-                    
+                    window.location.href = data.redirect; 
+
                   } else {
                     alert("Something went wrong: " + data.message);
                   }
@@ -133,9 +133,60 @@ signupbtn && signupbtn.addEventListener("click", (e) => {
 
     // ================================ SignIn Functionality ============================================//
 
+// ====================================Email Verification Functioanlity ============================================//
+
+const emailBtn = document.getElementById('emailTakingForm')
+
+emailBtn && emailBtn.addEventListener('submit', function(event) {
+  event.preventDefault();
+  const email = document.getElementById('email').value;
+
+  fetch('emailTaking', {
+      method: 'POST',
+      headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': csrftoken
+      },
+      body: JSON.stringify({ email: email })
+  }).then(response => response.json()).then(data => {
+      if (data.success) {
+          window.location.href = data.redirect;
+      } else {
+          alert(data.message);
+      }
+  });
+});
+
+const emailverify = document.getElementById('emailVerificationForm')
+
+emailverify && emailverify.addEventListener('submit', function(event) {
+  event.preventDefault();
+
+  fetch('emailVerification', {
+      method: 'POST',
+      headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': csrftoken
+      }
+  }).then(response => response.json()).then(data => {
+      if (data.success) {
+          alert(data.message);
+      } else {
+          alert('Error sending email.');
+      }
+  });
+});
+
+
+// ====================================Email Verification Functioanlity ============================================//
+
+
+
     // ================================ Points Accumulated Functionality ================================//
 
-    document.getElementById("pointBtn").addEventListener("click", function () {
+    const addPoints =  document.getElementById("pointBtn")
+
+      addPoints && addPoints.addEventListener("click", function () {
       const rewardCodeInput = document.getElementById("rewardCode").value.trim(); 
       const pointsBar = document.getElementById("pointsBar");
       const pointsStatus = document.getElementById("pointsStatus");

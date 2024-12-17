@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -9,7 +10,9 @@
     <h1>Purchase From ZYN</h1>
 
     <div>
-        <h2>Your Points: {{ point_accumulated }}</h2>
+        <input type="range" id="pointsBar" min="0" max="800" value="{{point_accumulated}}" readonly />
+
+        <h2>Points accumulated: {{ point_accumulated }}/800</h2>
     </div>
 
     {% if eligible_discount_codes %}
@@ -28,5 +31,8 @@
     {% if error %}
         <p style="color: red;">{{ error }}</p>
     {% endif %}
+
+    <script src="{% static 'js/index.js' %}" ></script>
+
 </body>
 </html>

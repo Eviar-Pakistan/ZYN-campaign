@@ -16,7 +16,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-from myapp.views import ageRestrict,signup,signin,pointsAccumulated,purchaseFromZYN,getRewardCode
+from myapp.views import ageRestrict,signup,signin,email_taking,email_verification,verify_email,pointsAccumulated,purchaseFromZYN,getRewardCode,claimMerchandize,redeemProduct,survey_view
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -24,6 +24,14 @@ urlpatterns = [
     path('',ageRestrict,name="ageRestrict"),
     path('signup',signup,name="signup"),
     path("signin",signin,name="signin"),
+    path('emailTaking',email_taking,name="emailTaking"),
+    path('emailVerification',email_verification,name="emailVerification"),
+    path('verifyEmail/', verify_email, name='verifyEmail'),
     path("pointsAccumulated",pointsAccumulated , name="pointsAccumulated"),
-    path("purchaseFromZYN",purchaseFromZYN,name="purchaseFromZYN")
+    path("purchaseFromZYN",purchaseFromZYN,name="purchaseFromZYN"),
+    path('claimMerchandize',claimMerchandize,name="claimMerchandize"),
+    path('redeem/<int:product_id>/', redeemProduct, name='redeem_product'),
+    path('survey', survey_view, name='survey'),
+
+
 ]
