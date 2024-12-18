@@ -186,7 +186,8 @@ def verify_email(request):
     user = request.user
     user.profile.email_verified = True
     user.profile.save()
-    return JsonResponse({'success': True, 'message': 'Email successfully verified.'})
+    return redirect("pointsAccumulated")
+
 
 
 @login_required(login_url= "signin")
@@ -208,11 +209,11 @@ def getRewardCode(request):
             user_profile = UserProfile.objects.get(user=user)
 
             # Ensure the user does not exceed the maximum points (800)
-            if user_profile.point_accumulated + 10 > 800:
+            if user_profile.point_accumulated + 80 > 800:
                 return JsonResponse({'success': False, 'message': 'You cannot exceed the maximum points of 800.'}, status=400)
 
             # Update user's points and mark reward code as used
-            user_profile.point_accumulated += 10
+            user_profile.point_accumulated += 80
             reward_code.is_used = True
             reward_code.save()
             user_profile.save()
