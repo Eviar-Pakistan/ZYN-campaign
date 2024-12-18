@@ -10,16 +10,55 @@ from django.shortcuts import get_object_or_404, redirect
 from django.core.paginator import Paginator
 from .models import SurveyQuestion
 from django.core.mail import send_mail
-from ZYN_Campaign.settings import EMAIL_HOST_USER
-
+from ZYN_Campaign.settings import EMAIL_HOST_USER,api_key,from_number
+import requests
 
 def ageRestrict(request):
 
     return render(request,"ageRestrict.html" )
 
 
+def send_otp(request):
+    if request.method == "POST":
+        data = json.loads(request.body)
+
+        contact_no =  data.get('contactNo')
+
+        url = f'https://api.itelservices.net/sendotp.php?type=php&api_key={api_key}&number={contact_no}&from={from_number}&template=Welcome to ZYN Your verification code is: [otp]. Please enter this code to complete your registration.'
+        
+        try:
+            response = requests.get(url)
+            if response.status_code == 200:
+                return JsonResponse({'success': True, 'message': 'OTP sent successfully.'}, status=200)
+            else:
+                return JsonResponse({'success': False, 'message': f'Failed to send OTP: {response.text}'}, status=500)
+        except Exception as e:
+            return JsonResponse({'success': False, 'message': f'Error: {str(e)}'}, status=500)
+        
+@csrf_exempt
+def verify_otp(request):
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
+            contact_no = data.get('contactNo')  # Ensure 'contactNo' is coming as expected
+            otp = data.get('otpInput')  # Ensure 'otpInput' is coming as expected
+            print(data)
+            # Verify OTP with ITel API
+            url = f'https://api.itelservices.net/sendotp.php?type=php&api_key=TEbVJ1uBlNCZ0gWYmVmTjtl9LOt0IvUe&number={contact_no}&from=998008&otp={otp}'
+            
+            response = requests.get(url)
+
+            if response.status_code == 200 and "success" in response.text:
+                # OTP verified successfully, proceed to signup
+                return JsonResponse({'success': True, 'message': 'OTP verified successfully.'}, status=200)
+            else:
+                return JsonResponse({'success': False, 'message': 'Invalid OTP or error in verification.'}, status=400)
+
+        except Exception as e:
+            return JsonResponse({'success': False, 'message': f'Error: {str(e)}'}, status=500)
 
 
+# Function to signup user after OTP verification
 @csrf_exempt
 def signup(request):
     if request.method == "POST":
@@ -31,6 +70,7 @@ def signup(request):
             signuppassword = data.get('signuppassword')
             rewardCode = data.get('rewardCode')
 
+            # Validate input fields
             if not fname or not lname:
                 return JsonResponse({'success': False, 'message': 'First and last name are required.'}, status=400)
             if not contactNo or len(contactNo) != 11 or not contactNo.isdigit():
@@ -40,14 +80,17 @@ def signup(request):
             if not rewardCode or not rewardCode.startswith('SR06-') or len(rewardCode.split('-')[1]) != 5:
                 return JsonResponse({'success': False, 'message': 'Invalid reward code format.'}, status=400)
 
+            # Check if the user already exists
             if UserProfile.objects.filter(contact_no=contactNo).exists():
                 return JsonResponse({'success': False, 'message': 'User with this contact number already exists.'}, status=400)
 
+            # Verify reward code
             try:
                 reward = RewardCode.objects.get(code=rewardCode, is_used=False)
             except RewardCode.DoesNotExist:
                 return JsonResponse({'success': False, 'message': 'Invalid or already used reward code.'}, status=400)
 
+            # Create the user
             user = User.objects.create_user(
                 username=f"{fname.lower()}{lname.lower()}{contactNo[-4:]}",
                 first_name=fname,
@@ -59,11 +102,14 @@ def signup(request):
                 user=user,
                 contact_no=contactNo,
                 reward_code=rewardCode,
-                point_accumulated=10  
+                point_accumulated=10
             )
-            reward.is_used = True 
+
+            # Mark reward code as used
+            reward.is_used = True
             reward.save()
 
+            # Return success response
             return JsonResponse({'success': True, 'message': 'User created successfully. Points accumulated: 10.'}, status=201)
 
         except json.JSONDecodeError:

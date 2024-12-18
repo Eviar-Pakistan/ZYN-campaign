@@ -83,6 +83,12 @@ DATABASES = {
     }
 }
 
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+    }
+}
+
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
@@ -139,5 +145,9 @@ EMAIL_HOST_USER = 'gamnest986@gmail.com'
 EMAIL_HOST_PASSWORD = 'srxxfpdnjkabhbna'
 EMAIL_USE_TLS = True
 EMAIL_USE_SSL = False
+
+
+api_key = 'TEbVJ1uBlNCZ0gWYmVmTjtl9LOt0IvUe'
+from_number = '998008'
 
 LOGIN_URL = 'signin'

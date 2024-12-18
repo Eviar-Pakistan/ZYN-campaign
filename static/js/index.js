@@ -20,9 +20,13 @@ function getCookie(name) {
 // ================================ Signup Functionality ============================================//
 const signupForm = document.getElementById("signupForm");
 const signupbtn = document.getElementById("signupbtn");
+const otpSection = document.getElementById("otpSection");
+const verifyOtpBtn = document.getElementById("verifyOtpBtn");
+
+let otpGenerated = null;  // To store the generated OTP for verification
 
 signupbtn && signupbtn.addEventListener("click", (e) => {
-    e.preventDefault()
+    e.preventDefault();
     const fname = document.getElementById('fname').value.trim();
     const lname = document.getElementById('lname').value.trim();
     const contactNo = document.getElementById('contactNo').value.trim();
@@ -40,7 +44,7 @@ signupbtn && signupbtn.addEventListener("click", (e) => {
         alert("First and Last name should only contain alphabets.");
         isValid = false;
     } else if (!contactRegex.test(contactNo)) {
-        alert("Contact number should be 10 digits.");
+        alert("Contact number should be 11 digits.");
         isValid = false;
     } else if (!passwordRegex.test(signuppassword)) {
         alert("Password must be at least 6 characters long and include both letters and numbers.");
@@ -54,37 +58,99 @@ signupbtn && signupbtn.addEventListener("click", (e) => {
     }
 
     if (isValid) {
-        const formData = {
-          fname: fname,
-          lname: lname,
-          contactNo: contactNo,
-          signuppassword: signuppassword,
-          rewardCode: rewardCode,
-        };
-    
-        fetch('signup', {
-          method: 'POST',
-          headers: {
+      fetch('send-otp', {
+        method: 'POST',
+        headers: {
             'Content-Type': 'application/json',
             'X-CSRFToken': csrftoken,
-          },
-          body: JSON.stringify(formData),
-        })
+        },
+        body: JSON.stringify({ contactNo: contactNo })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert("OTP sent successfully!");
+            // otpGenerated = data.otp; 
+            // document.getElementById("otpSection").style.display = "block";
+            // document.getElementById("signupbtn").style.display = "none"
+            // console.log(data)
+            const fname = document.getElementById('fname').value.trim();
+          const lname = document.getElementById('lname').value.trim();
+          const signuppassword = document.getElementById('password').value.trim();
+          const rewardCode = document.getElementById('rewardCode').value.trim();
+
+          const formData = {
+              fname: fname,
+              lname: lname,
+              contactNo: contactNo,
+              signuppassword: signuppassword,
+              rewardCode: rewardCode,
+          };
+
+          // Send signup request
+          fetch('signup', {
+              method: 'POST',
+              headers: {
+                  'Content-Type': 'application/json',
+                  'X-CSRFToken': csrftoken,
+              },
+              body: JSON.stringify(formData),
+          })
           .then(response => response.json())
           .then(data => {
-            if (data.success) {
-              alert("Signup successful!");
-              signupForm.reset(); 
-              window.location.href = "signin"
-            } else {
-              alert("Something went wrong: " + data.message);
-            }
+              if (data.success) {
+                  alert("Signup successful!");
+                  window.location.href = "signin";
+              } else {
+                  alert("Something went wrong: " + data.message);
+              }
           })
           .catch(error => {
-            alert("An error occurred: " + error.message);
+              alert("An error occurred during signup: " + error.message);
           });
-      }
+        } else {
+            alert("Failed to send OTP: " + data.message);
+        }
+    })
+    .catch(error => {
+        alert("Error sending OTP: " + error.message);
     });
+    }
+});
+
+
+// verifyOtpBtn && verifyOtpBtn.addEventListener("click", (e) => {
+//   e.preventDefault();
+
+//   const otpInput = document.getElementById('otp').value.trim();
+//   const contactNo = document.getElementById("contactNo").value.trim();
+//   console.log(otpInput, contactNo)
+
+//   // Send OTP verification request
+//   fetch('verify-otp', {
+//       method: 'POST',
+//       headers: {
+//           'Content-Type': 'application/json',
+//           'X-CSRFToken': csrftoken2,
+//       },
+//       body: JSON.stringify({ contactNo: contactNo, otpInput: otpInput })
+//   })
+//   .then(response => response.json())
+//   .then(data => {
+//       if (data.success) {
+//           alert("OTP verified successfully!");
+          // OTP is verified, proceed with signup
+          
+//       } else {
+//           alert("Invalid OTP: " + data.message);
+//       }
+//   })
+//   .catch(error => {
+//       alert("Error verifying OTP: " + error.message);
+//   });
+// });
+
+
 
     // ================================ Signup Functionality ============================================//
 

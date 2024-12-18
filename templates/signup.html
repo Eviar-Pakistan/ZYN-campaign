@@ -12,62 +12,63 @@
     <body>
       
         <h2>Sign Up</h2>
-        <form id="signupForm" action="" method="POST" >
-            {% csrf_token %}
-            <div>
-              <label for="fname" >First name</label>
+        <form id="signupForm" action="" method="POST">
+          {% csrf_token %}
+          <div>
+              <label for="fname">First name</label>
               <input type="text" id="fname" placeholder="First name">
-            </div>
-            <div>
-              <label for="lname" >Last name</label>
+          </div>
+          <div>
+              <label for="lname">Last name</label>
               <input type="text" id="lname" placeholder="Last name">
-            </div>
-
-            <div >
-              <label for="contactNo" >Contact no</label>
+          </div>
+          <div>
+              <label for="contactNo">Contact no</label>
               <input type="number" id="contactNo" placeholder="Contact No">
-            </div>
-            <div>
-              <label for="password" >Password</label>
-              <input type="password"  id="password" placeholder="Password">
-            </div>
-            <div>
-              <label for="rewardCode" >Reward code</label>
+          </div>
+          <div>
+              <label for="password">Password</label>
+              <input type="password" id="password" placeholder="Password">
+          </div>
+          <div>
+              <label for="rewardCode">Reward code</label>
               <input type="text" id="rewardCode" placeholder="SR06-XXXXX">
-            </div>
-
-            <br>
-
-            <div>
-              <label for="checkbox1" >
-                <input type="checkbox" id="checkbox1">
-                Term and Conditions
-                <p>By signing up, you agree to the following terms and conditions:</p>
+          </div>
+      
+          <br>
+          
+          <div>
+              <label for="checkbox1">
+                  <input type="checkbox" id="checkbox1">
+                  Term and Conditions
+                  <p>By signing up, you agree to the following terms and conditions:</p>
               </label>
-            </div>
-            <div>
-              <label for="checkbox2" >
-                <input type="checkbox" id="checkbox2">
-                I consent to receiving product information and promotional offers from ZYN, electronically,
-                including, SMS and WhatsApp
+          </div>
+          <div>
+              <label for="checkbox2">
+                  <input type="checkbox" id="checkbox2">
+                  I consent to receiving product information and promotional offers from ZYN, electronically,
+                  including SMS and WhatsApp
               </label>
-            </div><br>
-
-            <a>
-              <button type="button" id="signupbtn">
-                Sign up
-               
-              </button>
-            </a>
-
-            <div>
-              <label>
-
-                Already have an account <a href="signin"> Sign in</a>
-              </label>
-            </div>
-
-          </form>
+          </div><br>
+      
+          {% comment %} <div id="otpSection"  style="display:none" >
+            <form method="POST"  id="otpForm" >  
+              {% csrf_token %}
+              <label for="otp">Enter OTP:</label>
+              <input type="text" id="otp" placeholder="Enter OTP">
+              <button type="button" id="verifyOtpBtn">Verify OTP</button>
+            </form>
+          </div>
+           {% endcomment %}
+          <a>
+              <button type="button" id="signupbtn">Sign up</button>
+          </a>
+          {% comment %} <div>
+              <label>Already have an account <a href="signin">Sign in</a></label>
+          </div> {% endcomment %}
+      </form>
+      
 
     
 
