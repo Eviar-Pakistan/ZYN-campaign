@@ -1,4 +1,5 @@
 {% load static %}
+{% load socialaccount %}
 <!DOCTYPE html>
 <html>
 <head>
@@ -20,8 +21,9 @@
             </div>
         </div>
     </form>
-
-    <button type="button" >Verify with Google</button>
+    <a href="{% provider_login_url 'google' %}" >
+        <button type="button"  >Verify with Google</button>
+    </a>
     <script src="{% static 'js/index.js' %}" ></script>
 </body>
 </html>

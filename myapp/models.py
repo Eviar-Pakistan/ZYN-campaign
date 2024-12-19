@@ -6,6 +6,7 @@ from django.db import models
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
     contact_no = models.CharField(max_length=15, blank=True, null=True, unique=True)
+    email = models.CharField(max_length=20, blank=True, null=True , unique=True)
     reward_code = models.CharField(max_length=20, blank=True, null=True)
     point_accumulated = models.PositiveIntegerField(default=0)
     email_verified = models.BooleanField(default=False)

@@ -15,12 +15,13 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path
+from django.urls import path , include
 from myapp.views import ageRestrict,send_otp,verify_otp,signup,signin,email_taking,email_verification,verify_email,pointsAccumulated,purchaseFromZYN,getRewardCode,claimMerchandize,redeemProduct,survey_view
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('rewardCodes', getRewardCode, name="rewardCodes"),
+    path('accounts/',include('allauth.urls')),
     path('',ageRestrict,name="ageRestrict"),
     path("send-otp",send_otp,name="send-otp"),
     path("verify-otp",verify_otp,name="verify-otp"),

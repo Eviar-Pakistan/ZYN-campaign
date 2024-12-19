@@ -121,6 +121,12 @@ def signup(request):
 
 from django.shortcuts import redirect
 
+from django.contrib.auth import authenticate, login
+from django.shortcuts import render
+from django.http import JsonResponse
+import json
+from .models import UserProfile
+
 def signin(request):
     if request.method == "POST":
         try:
@@ -137,7 +143,11 @@ def signin(request):
 
                 if user is not None:
                     login(request, user)
-                    if not user.email:
+
+                    # Store the user ID in the session
+                    request.session['user_id'] = user.id
+
+                    if not user.profile.email:
                         return JsonResponse({'success': True, 'redirect': '/emailTaking'}, status=200)
                     elif not user_profile.email_verified:
                         return JsonResponse({'success': True, 'redirect': '/emailVerification'}, status=200)
@@ -153,17 +163,50 @@ def signin(request):
 
     return render(request, "signin.html")
 
+
+
+@login_required
 def email_taking(request):
     if request.method == "POST":
+        profile = request.user.profile
         data = json.loads(request.body)
         email = data.get('email')
         if email:
-            request.user.email = email
-            request.user.save()
+            profile.email = email
+            profile.save()
             return JsonResponse({'success': True, 'redirect': '/emailVerification'}, status=200)
         else:
-             return JsonResponse({'success': True, 'redirect': '/pointsAccumulated'}, status=200)
-    return render(request, "emailTaking.html")
+            return JsonResponse({'success': True, 'redirect': '/pointsAccumulated'}, status=200)
+    return render(request, "emailTaking.html") 
+
+from allauth.socialaccount.signals import pre_social_login
+from django.dispatch import receiver
+from django.contrib.auth.models import User
+from myapp.models import UserProfile
+
+# Signal to update profile without changing the user session
+@receiver(pre_social_login)
+def update_profile_with_google_email(sender, request, sociallogin, **kwargs):
+    # Get the Google email from the social login data
+    google_email = sociallogin.account.extra_data.get('email')
+    
+    # Only update if the email is available
+    if google_email:
+        user = request.user  # Get the current logged-in user
+        profile = user.profile  # Access the user's profile
+
+        # Update the user's profile email if it's empty or different from the Google email
+        if not profile.email or profile.email != google_email:
+            profile.email = google_email
+            profile.email_verified = True  # Mark as verified or add your logic here
+            profile.save()
+
+    # You can perform additional checks here if needed (like verifying if the email already exists)
+
+
+
+
+
 
 @login_required
 def email_verification(request):
@@ -184,6 +227,7 @@ def email_verification(request):
 @login_required
 def verify_email(request):
     user = request.user
+
     user.profile.email_verified = True
     user.profile.save()
     return redirect("pointsAccumulated")
@@ -228,21 +272,35 @@ def getRewardCode(request):
     return JsonResponse({'success': False, 'message': 'Invalid request method.'}, status=400)
 
 
+
 @login_required(login_url="signin")
 def pointsAccumulated(request):
-    user = request.user
-    user_profile = UserProfile.objects.get(user=user)
+    # Retrieve user ID from session
+    user_id = request.session.get('user_id')
 
-    # Award points only if email is verified and points haven't been awarded yet
-    if user_profile.email_verified and not user_profile.points_awarded_for_email:
-        user_profile.point_accumulated += 40  # Increment points
-        user_profile.points_awarded_for_email = True  # Mark points as awarded
-        user_profile.save()  # Save the changes to the database
+    if user_id:
+        try:
+            # Retrieve user profile based on user_id stored in session
+            user_profile = UserProfile.objects.get(user_id=user_id)
+            email = user_profile.email
 
-    # Get the current points from the profile
-    points_accumulated = user_profile.point_accumulated
+            # Award points only if email is verified and points haven't been awarded yet
+            if user_profile.email_verified and not user_profile.points_awarded_for_email:
+                user_profile.point_accumulated += 40  # Increment points
+                user_profile.points_awarded_for_email = True  # Mark points as awarded
+                user_profile.save()  # Save the changes to the database
 
-    return render(request, "pointsAccumulated.html", {'points_accumulated': points_accumulated})
+            # Get the current points from the profile
+            points_accumulated = user_profile.point_accumulated
+
+            return render(request, "pointsAccumulated.html", {'points_accumulated': points_accumulated})
+        except UserProfile.DoesNotExist:
+            # Handle case where UserProfile does not exist
+            return redirect("signin")  # Redirect to signin page if profile does not exist
+    else:
+        # If the user_id is not in the session, redirect to signin page
+        return redirect("signin")
+
 
 
 
